@@ -1,0 +1,50 @@
+-- executor_hooks_test.lua -- Tests an expanded set of executor and reflection hooks, logs results -- 0 = doesn't work -- 1 = success -- 2 = misconfigured (bad args or improper context) -- 3 = hook available but blocked by game/security
+
+local hooks = { -- Executor-specific APIs {"hookfunction", hookfunction}, {"hookmetamethod", hookmetamethod}, {"getnamecallmethod", getnamecallmethod}, {"getcallingscript", getcallingscript}, {"checkcaller", checkcaller}, {"isexecutorclosure", isexecutorclosure or is_synapse_function}, {"identifyexecutor", identifyexecutor}, {"rconsoleprint", rconsoleprint}, {"rconsolewarn", rconsolewarn}, {"rconsoleerr", rconsoleerr}, {"rconsoleclear", rconsoleclear}, {"gethui", gethui}, {"syn.request", syn and syn.request}, {"http_request", http_request}, {"is_protosmasher_closure", is_protosmasher_closure}, {"getloadedmodules", getloadedmodules},
+
+-- Debug/introspection
+{"getrawmetatable", getrawmetatable},
+{"debug.getmetatable", debug and debug.getmetatable},
+{"debug.getupvalue", debug and debug.getupvalue},
+{"debug.setupvalue", debug and debug.setupvalue},
+{"debug.getconstants", debug and debug.getconstants},
+{"debug.setconstants", debug and debug.setconstants},
+{"getgc", getgc},
+{"getupvalues", getupvalues},
+{"getclosure", getclosure},
+{"getclosures", getclosures},
+{"getreg", getreg},
+{"getsenv", getsenv},
+{"getfenv", getfenv},
+{"setfenv", setfenv},
+{"newcclosure", newcclosure},
+
+-- File/memory hooks
+{"writefile", writefile},
+{"readfile", readfile},
+{"delfile", delfile},
+{"setreadonly", setreadonly},
+
+-- Other utilities
+{"decompile", decompile},
+{"islclosure", islclosure},
+{"iscclosure", iscclosure},
+{"isluaclosure", isluaclosure},
+{"clonefunction", clonefunction},
+{"replaceclosure", replaceclosure},
+{"setfflag", setfflag},
+{"fireclickdetector", fireclickdetector},
+{"firetouchinterest", firetouchinterest},
+{"fireproximityprompt", fireproximityprompt},
+{"hook_signal", hook_signal},
+{"getproto", getproto},
+{"setproto", setproto},
+{"debug.traceback", debug and debug.traceback},
+
+}
+
+local results = {} for _, hook in ipairs(hooks) do local name, fn = hook[1], hook[2] local code = 0 if type(fn) == "function" then local ok, err = pcall(fn) if ok then code = 1 else local msg = tostring(err):lower() if msg:find("bad argument") or msg:find("not in metamethod") then code = 2 elseif msg:find("block") or msg:find("deny") or msg:find("permission") then code = 3 else code = 0 end end end results[#results+1] = tostring(code) print(string.format("[%s] -> %d", name, code)) end
+
+local log = table.concat(results) print("Executor Hooks Test Log:", log)
+
+-- Auto-copy result to clipboard if supported pcall(function() if setclipboard then setclipboard(log) print("Log copied to clipboard.") end end)
